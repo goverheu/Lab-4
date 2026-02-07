@@ -1,7 +1,7 @@
 ---
 title: "Lab 04 - La Quinta is Spanish for next to Denny's, Pt. 1"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Graham Overheu"
+date: "2/6/2026"
 output: github_document
 ---
 
@@ -16,36 +16,164 @@ library(dsbox)
 states <- read_csv("data/states.csv")
 ```
 
-### Exercise 1
+```{r}
+dennys <- dennys
+laquinta <- laquinta
+```
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+
+### Exercise 1
+There are `r nrow(dennys)` rows and `r ncol(dennys)` columns. Each row represents one individual Denny's, while each columns represents a location-related variable.
 
 ### Exercise 2
 
-Remove this text, and add your answer for Exercise 2 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+There are `r nrow(laquinta)` rows and `r ncol(laquinta)` columns. Each row represents one individual La Quinta hotel, while each columns represents a location-related variable.
+
 
 ### Exercise 3
 
-...
+La Quinta has locations in Canada, Mexico, China, Georgia, Turkey, New Zealand, Colombia, and Ecuador. Denny's does not seem to have any locations outside of the US, according to the link provided.
 
 ### Exercise 4
 
-...
+We can look at the longitude and latitude of each location to see whether or not each one is located in the US.
 
 ### Exercise 5
+```{r}
+dennys %>%
+  filter(!(state %in% states$abbreviation))
+```
+There are no Denny's locations outside of the US.
 
-...
 
 ### Exercise 6
 
-...
+```{r}
+laquinta <- laquinta %>%
+  mutate(country = case_when(
+    state %in% state.abb ~ "United States",
+    state %in% c("ON", "BC") ~ "Canada",
+    state == "ANT" ~ "Colombia",
+    state %in% c("CMX", "JAL", "NLE", "QUE") ~ "Mexico",
+    state == "HN" ~ "Honduras",
+    TRUE ~ "Other"
+  ))
+```
+
+```{r}
+dennys %>%
+  mutate(country = "United States")
+```
 
  
-Add exercise headings as needed.
+## Exercise 7
+La Quinta has locations in Canada, Mexico, China, Georgia, Turkey, New Zealand, Colombia, and Ecuador.
 
+## Exercise 8
+```{r}
+laquinta <- laquinta %>%
+  mutate(country = case_when(
+    state %in% state.abb ~ "United States",
+    state %in% c("ON", "BC") ~ "Canada",
+    state == "ANT" ~ "Colombia",
+    state %in% c("CMX", "JAL", "NLE", "QUE") ~ "Mexico",
+    state == "EC" ~ "Ecuador",
+    state == "CH" ~ "China",
+    TRUE ~ "Other"
+  ))
+```
+
+```{r}
+laquinta <- laquinta %>%
+  filter(country == "United States")
+```
+
+## Exercise 9
+```{r}
+dennys %>%
+  count(state, sort = TRUE)
+```
+California has the most Denny's locations, which is not surprising due to its large population. Delaware has the fewest Denny's locations which is also not surprising due to its population size.
+
+```{r}
+laquinta %>%
+  count(state, sort = TRUE)
+```
+Texas has the most amount if La Quinta locations, which is not surprising due to it being one of the more frequently visited states. However, I would've expected more than 74 to be in Florida, the state with the second most locations. I am not surprised that Maine has the least number of locations since it is a fairly isolated state from the rest of the country, and hence there are not a significant number of people traveling there per year.
+
+## Exercise 10
+```{r}
+dennys_density <- dennys %>%
+  count(state) %>%
+  inner_join(states, by = c("state" = "abbreviation")) %>%
+  mutate(per_1000_sq_miles = n / area * 1000) %>%
+  arrange(desc(per_1000_sq_miles))
+```
+
+Rhode Island, California, and Connecticut have the most Denny's per 1000 square miles.
+
+```{r}
+laquinta_density <- laquinta %>%
+  count(state) %>%
+  inner_join(states, by = c("state" = "abbreviation")) %>%
+  mutate(per_1000_sq_miles = n / area * 1000) %>%
+  arrange(desc(per_1000_sq_miles))
+```
+
+Rhode Island, Florida, and Connecticut have the most La Quintas per 1000 square miles.
+
+## Exercise 11
+```{r}
+dennys <- dennys %>%
+  mutate(establishment = "Denny's")
+laquinta <- laquinta %>%
+  mutate(establishment = "La Quinta")
+```
+
+```{r}
+dennys_laquinta <- bind_rows(dennys, laquinta)
+```
+
+```{r}
+ggplot(dennys_laquinta, mapping = aes(
+  x = longitude,
+  y = latitude,
+  color = establishment
+)) +
+  geom_point()
+```
+
+```{r}
+locations <- bind_rows(dennys, laquinta)
+```
+
+```{r}
+locations %>%
+  filter(state == "NC") %>%
+  ggplot(aes(x = longitude, y = latitude, color = establishment)) +
+  geom_point(alpha = 0.7, size = 2) +
+  labs(
+    title = "Denny's and La Quinta Locations in North Carolina",
+    x = "Longitude",
+    y = "Latitude",
+    color = "Establishment"
+  ) +
+  theme_minimal()
+```
+Yes, Mitch Hedberg's joke seems to hold here.
+
+## Question 12
+```{r}
+locations %>%
+  filter(state == "TX") %>%
+  ggplot(aes(x = longitude, y = latitude, color = establishment)) +
+  geom_point(alpha = 0.7, size = 2) +
+  labs(
+    title = "Denny's and La Quinta Locations in Texas",
+    x = "Longitude",
+    y = "Latitude",
+    color = "Establishment"
+  ) +
+  theme_minimal()
+```
+Yes, Mitch Hedberg's joke seems to hold here.
